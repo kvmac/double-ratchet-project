@@ -4,6 +4,7 @@ import BN from 'bn.js';
 import randomBytes from 'randombytes';
 import { hexStringToBytes, bytesToHex } from '../utils';
 
+// TODO: convert Buffers into Uint8Arrays for browser
 const useCrypto = () => {
   const ec25519 = new ec('curve25519');
   // const ed25519 = new eddsa('ed25519');
@@ -68,7 +69,6 @@ const useCrypto = () => {
     return c;
   };
 
-
   const Decrypt = async (cipherAndSig, mKey, AD) => {
     const cipherAndSigBytes = hexStringToBytes(cipherAndSig);
     const [ encKey, authKey, _ ] = deriveEncKeys(mKey);
@@ -91,7 +91,7 @@ const useCrypto = () => {
   };
 
   const deriveEncKeys = (messageKey) => {
-    const keyHash = Hkdf(messageKey, 80, {salt: new ArrayBuffer(32), info: hexStringToBytes("pcwSByyx2CRdryCffXJwy7xgVZWtW5Sh")});
+    const keyHash = Hkdf(messageKey, 80, {salt: new Uint8Array(32), info: hexStringToBytes("pcwSByyx2CRdryCffXJwy7xgVZWtW5Sh")});
 
     const encKeyBuffer = keyHash.slice(0, 32);
     const authKeyBuffer = keyHash.slice(32, 64);
@@ -147,7 +147,6 @@ const useCrypto = () => {
     const hmac = algo.HMAC.create(algo.SHA256, saltBytes.toString('hex'));
     hmac.update(ikmBytes.toString('hex'));
     return hmac.finalize();
-    // return HmacSHA256(saltBytes).update(ikmBytes).finalize();
   };
 
   // Second Part of HKDF expands

@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  server:
+    container_name: bob
+    build:
+      context: ./bob
+      dockerfile: /alice/Dockerfile
+    ports: 
+      - 0.0.0.0:8080:8080 
+    restart: on-failure
+    volumes:
+      - .:/bob
+
+  client:
+    container_name: alice
+    build:
+      context: ./alice
+      dockerfile: /alice/Dockerfile
+    ports: 
+      - 0.0.0.0:3000:3000 
+    restart: on-failure
+    volumes:
+      - '.:/app'
+      - '/app/node_modules'

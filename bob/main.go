@@ -1,16 +1,15 @@
 package main
 
 import (
-	// "fmt"
-	"log"
-	"net/http"
-	// "os"
 	"encoding/hex"
 	"encoding/json"
-	// signal "github.com/dosco/libsignal-protocol-go"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
 	"time"
 
-	// "github.com/c-bata/go-prompt"
+	"github.com/c-bata/go-prompt"
 	"github.com/gorilla/websocket"
 	dbl "github.com/status-im/doubleratchet"
 )
@@ -48,29 +47,34 @@ func main() {
 	keyBundle, appBundle = GenerateKeys()
 
 	// Uncomment these two input prompts for production. They will not work while in debug mode.
-	// iOne := prompt.Input("Join a chat with Alice? Y/N ", func(d prompt.Document) []prompt.Suggest {
-	// 	s := []prompt.Suggest{
-	// 		{Text: "Yes", Description: "Let's begin the chat!"},
-	// 		{Text: "No", Description: "No thanks."},
-	// 	}
-	// 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
-	// })
-	// if iOne == "No" {
-	// 	os.Exit(0)
-	// }
+	iOne := prompt.Input("Join a chat with Alice? Y/N ", func(d prompt.Document) []prompt.Suggest {
+		s := []prompt.Suggest{
+			{Text: "Yes", Description: "Let's begin the chat!"},
+			{Text: "No", Description: "No thanks."},
+		}
+		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+	})
+	if iOne == "No" {
+		os.Exit(0)
+	}
 
-	// iTwo := prompt.Input("Will it be encrypted? Y/N ", func(d prompt.Document) []prompt.Suggest {
-	// 	s := []prompt.Suggest{
-	// 		{Text: "Yes", Description: "Use X3DH and Double Ratchet Protocol to protect my conversation!"},
-	// 		{Text: "No", Description: "I want my messages to be vulnerable."},
-	// 	}
-	// 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
-	// })
-	// if iTwo == "No" {
-	// 	isEncrypted = false
-	// } else {
-	// 	isEncrypted = true
-	// }
+	iTwo := prompt.Input("Will it be encrypted? Y/N ", func(d prompt.Document) []prompt.Suggest {
+		s := []prompt.Suggest{
+			{Text: "Yes", Description: "Use X3DH and Double Ratchet Protocol to protect my conversation!"},
+			{Text: "No", Description: "I want my messages to be vulnerable."},
+		}
+		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+	})
+	if iTwo == "No" {
+		isEncrypted = false
+		fmt.Println("You are now in an unencrypted chat with Alice!")
+		fmt.Print("\n\n")
+	} else {
+		isEncrypted = true
+		fmt.Println("----------------------------------------------------")
+		fmt.Println("--- You are now in an encrypted chat with Alice! ---")
+		fmt.Print("----------------------------------------------------\n\n")
+	}
 
 	bob, err = dbl.New([]byte("Bob-session"), sharedSecret, appBundle.EphemeralKeyPair, nil)
 	if err != nil {

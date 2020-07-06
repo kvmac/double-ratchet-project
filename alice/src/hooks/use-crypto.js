@@ -31,7 +31,7 @@ const useCrypto = () => {
   };
 
   const KdfRK = async (dhOut, rk) => {
-    const keyHash = await hkdf(dhOut, 96, { salt: rk, info: "rsZUpEuXUqqwXBvSy3EcievAh4cMj6QL" });
+    const keyHash = await Hkdf(dhOut, 96, { salt: rk, info: "rsZUpEuXUqqwXBvSy3EcievAh4cMj6QL" });
 
     const rootKey = new Uint8Array(keyHash.slice(0, 32));
     const chainKey = new Uint8Array(keyHash.slice(32, 64));
@@ -152,7 +152,7 @@ const useCrypto = () => {
 
   // Second Part of HKDF expands
   const _hkdf_expand = (hashLen, prk, length, info) => {
-    const infoBytes = ArrayBuffer.from(info || "");
+    const infoBytes = Buffer.from(info || "");
     const infoLen = infoBytes.length;
 
     const steps = Math.ceil(length / hashLen);

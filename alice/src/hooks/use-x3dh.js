@@ -22,7 +22,7 @@ const useX3dh = ({ uri, initialMasterSecret }) => {
 
   const [ AD, setAD ] = useState("");
 
-  const { generateKeyPair, deriveSecret, KdfRK, KdfCK } = useCrypto();
+  const { GenerateKeyPair, DeriveSecret, KdfRK, KdfCK } = useCrypto();
 
   useEffect(() => {
     if (masterSecret) {
@@ -30,17 +30,17 @@ const useX3dh = ({ uri, initialMasterSecret }) => {
       return;
     }
 
-    async () => {
+    (async () => {
 
       const [ theirIdentityKey, theirSignedPreKey, theirSignedPreKeySig ] = await getX3dhBundle(uri);
 
-      if (!ed25519Verify(theirIdentityKey, theirSignedPreKey, theirSignedPreKeySig)) {
-        throw new Error("Pre-Key signature did not match Signed-Pre-Key");
-      }
+      // if (!ed25519Verify(theirIdentityKey, theirSignedPreKey, theirSignedPreKeySig)) {
+      //   throw new Error("Pre-Key signature did not match Signed-Pre-Key");
+      // }
 
       // Initialize X3DH master_secret
       await initialize(theirSignedPreKey, theirIdentityKey);
-    };
+    })();
   }, [])
 
   const getX3dhBundle = async (uri) => {
@@ -58,8 +58,8 @@ const useX3dh = ({ uri, initialMasterSecret }) => {
 
 
   const initialize = async (theirSignedPreKey, theirIdentityKey) => {
-    const myIdentityKeyPair = await generateKeyPair();
-    const myEphemeralKeyPair = await generateKeyPair();
+    const myIdentityKeyPair = await GenerateKeyPair();
+    const myEphemeralKeyPair = await GenerateKeyPair();
 
     const dhOut1 = await DeriveSecret(myIdentityKeyPair, theirSignedPreKey);
     const dhOut2 = await DeriveSecret(myEphemeralKeyPair, theirIdentityKey);
@@ -74,7 +74,7 @@ const useX3dh = ({ uri, initialMasterSecret }) => {
     await setMasterSecret(dhOut1 + dhOut2 + dhOut3);
   }
 
-    return [ MasterSecret, MyIdentityKeyPair, MyDHKeyPair, AD ];
+    return [ masterSecret, myIdentityPubKey, myIdentityPrivKey, myDHPubKey, myDHPrivKey, AD ];
   }
 
   export default useX3dh;

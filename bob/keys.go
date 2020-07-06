@@ -4,7 +4,7 @@ import (
 	// "fmt"
 	"crypto/ed25519"
 	"crypto/rand"
-	"encoding/binary"
+	// "encoding/binary"
 	"encoding/hex"
 	dbl "github.com/status-im/doubleratchet"
 	"golang.org/x/crypto/curve25519"
@@ -26,7 +26,7 @@ func GenerateKeys() (X3DHBundle, AppBundle) {
 		panic(err)
 	}
 
-	signedPreKeySig := ed25519.Sign(ed25519.PrivateKey(identityKeyPair.PrivateKey()), []byte(signedPreKeyPair.PublicKey()))
+	signedPreKeySig := ed25519.Sign(ed25519.PrivateKey(identityKeyPair.PrivateKey().String()), []byte(signedPreKeyPair.PublicKey()))
 
 	oneTimePreKeyPair, err := dbl.DefaultCrypto{}.GenerateDH()
 	if err != nil {
@@ -114,11 +114,13 @@ func generateKeyId() uint64 {
 }
 
 func generateDeviceId() uint32 {
-	key := []byte{}
-	_, err := rand.Read(key[:])
-	if err != nil {
-		panic(err)
-	}
+	// key := []byte{}
+	// _, err := rand.Read(key[:])
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	return binary.BigEndian.Uint32(key)
+	// return binary.BigEndian.Uint32(key)
+
+	return 0
 }

@@ -21,19 +21,19 @@ const useDoubleRatchet = (masterSecret, { maxSkip }) => {
   const { GenerateKeyPair, DeriveSecret, Hkdf, KdfRK, KdfCK, Encrypt, Decrypt, EncodeHeader } = useCrypto();
 
   useEffect(() => {
-    async () => {
+    (async () => {
       // This call will be removed once X3DH is implemented
       const res = await axios("localhost:8080/keys", {method: "get"});
       const { pubKey } = res.data;
 
-      const [ rootKey, sendingKey ] = await hkdf(masterSecret);
+      const [ rootKey, sendingKey ] = await Hkdf(masterSecret);
 
       await updateChain({
         rootKey,
         sendingKey
       });
       await setTheirDHPubKey(pubKey);
-    };
+    })();
   }, [])
 
   const dhRatchet = async (header) => {
@@ -76,7 +76,7 @@ const useDoubleRatchet = (masterSecret, { maxSkip }) => {
       throw new Error("Cannot skip that many message keys");
     }
     if (receivingChain.key) {
-      const [ msgKey, receivingKey ] = await kdfCK(receivingChain.key);
+      const [ msgKey, receivingKey ] = await KdfCK(receivingChain.key);
       let skipped = rootChain.SKIPPED;
       skipped[theirDHPubKey, receivingChain.n] = msgKey;
 
@@ -111,7 +111,7 @@ const useDoubleRatchet = (masterSecret, { maxSkip }) => {
 
     return {
       header,
-      ciphertext
+      ciphertext: bytesToHex(ciphertext)
     };
   };
 

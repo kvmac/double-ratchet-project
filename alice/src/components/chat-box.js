@@ -51,7 +51,6 @@ const ChatScreen = ({ messages }) => {
           </div>
         );
       })}
-
     </div>
   );
 };

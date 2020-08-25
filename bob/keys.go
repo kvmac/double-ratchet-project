@@ -11,6 +11,8 @@ import (
 	"math/big"
 )
 
+// TODO: complete X3DH key exchange
+///////////////////////////////////
 func GenerateKeys() (X3DHBundle, AppBundle) {
 	deviceId := generateDeviceId()
 	// oneTimePreKeyQueue = generateOneTimePreKeys(10)

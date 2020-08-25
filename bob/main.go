@@ -19,8 +19,9 @@ var isEncrypted bool
 
 // double-ratchet protocol variables
 var (
-	err              error
-	bob              dbl.Session
+	err error
+	bob dbl.Session
+	// TODO: remove shared secret once X3DH is completed
 	sharedSecret     = dbl.Key([]byte("697c0afabe85f6c67a3310e9304f2cd07d58374692faf14b9476a854ba08f15e"))
 	securedSocket    = &websocket.Conn{}
 	socket           = &websocket.Conn{}
@@ -50,7 +51,7 @@ func main() {
 	// Generates the X3DH key bundle
 	keyBundle, appBundle = GenerateKeys()
 
-	// Uncomment these two input prompts for production. They will not work while in debug mode.
+	// Uncomment these two input prompts for production. They will not work in vscodes debug mode.
 	// iOne := prompt.Input("Join a chat with Alice? Y/N ", func(d prompt.Document) []prompt.Suggest {
 	// 	s := []prompt.Suggest{
 	// 		{Text: "Yes", Description: "Let's begin the chat!"},
@@ -81,7 +82,6 @@ func main() {
 	// }
 
 	bob, err = dbl.New([]byte("Bob-session"), sharedSecret, appBundle.EphemeralKeyPair, nil)
-	// bob, err = dbl.New([]byte("Bob-session"), sharedSecret, appBundle.EphemeralKeyPair, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,6 +106,7 @@ func main() {
 		w.Write(kb)
 
 	})
+
 	http.HandleFunc("/securedMsg", func(w http.ResponseWriter, req *http.Request) {
 		securedSocket, err = upgrader.Upgrade(w, req, nil)
 		if err != nil {

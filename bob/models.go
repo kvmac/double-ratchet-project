@@ -6,7 +6,8 @@ import (
 	dbl "github.com/status-im/doubleratchet"
 )
 
-// IRL X3DH would require a Key Distribution Center server
+// TODO: An ideal X3DH implementation would require a Key Distribution Center server
+// But I'll just create a X3DH key bundle endpoint for now
 type X3DHBundle struct {
 	DeviceId       uint32              `json:"deviceId"`
 	RegistrationId uint64              `json:"registrationId"`

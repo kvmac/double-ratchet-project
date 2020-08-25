@@ -18,6 +18,7 @@ const useX3dh = ({ uri, initialMasterSecret }) => {
   const [ theirIdentityKey, setTheirIdentityKey ] = useStore("THEIR_IDENTITY_KEY", "");
   const [ theirSignedPreKey, setTheirSignedPreKey ] = useStore("THEIR_SIGNED_PRE_KEY", "");
   const [ theirPreKeySig, setTheirPreKeySig ] = useStore("THEIR_PRE_KEY_SIG", "");
+  // TODO: decide if I want to include OTPKs
   // const [ theirOneTimePreKey, setTheirOneTimePreKey ] = useState("");
 
   const [ AD, setAD ] = useState("");

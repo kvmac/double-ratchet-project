@@ -3,7 +3,6 @@
 
 @import "tailwindcss/components";
 
-@import "tailwindcss/utilities";
 
 
 .chat-box {
@@ -16,3 +15,5 @@
 .chat-input {
 
 }
+
+@import "tailwindcss/utilities";

@@ -6,7 +6,7 @@ module.exports = {
         tailwindcss('./tailwind.js'),
         require('autoprefixer'),
         purgecss({
-          content: ['./**/*.html']
+          content: ['src/**/*.js']
         })
     ],
 };

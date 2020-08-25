@@ -8,6 +8,16 @@ export function getFormattedTime() {
   return `${d.getHours() % 12}:${d.getMinutes()}:${d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds()} ${d.getHours() > 12 ? "pm" : "am"}`;
 }
 
+export function base64StringToBytes(base64) {
+    var binary_string = window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
 export function hexStringToBytes(str) {
   if (!str) {
     return new Uint8Array();
@@ -26,3 +36,4 @@ export function bytesToHex (byteArray) {
     (output + ('0' + elem.toString(16)).slice(-2)),
     '');
 }
+

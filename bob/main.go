@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"log"
 	"net/http"
-	"os"
+	// "os"
 	"time"
 
-	"github.com/c-bata/go-prompt"
+	// "github.com/c-bata/go-prompt"
 	"github.com/gorilla/websocket"
 	dbl "github.com/status-im/doubleratchet"
 )
@@ -21,7 +21,7 @@ var isEncrypted bool
 var (
 	err              error
 	bob              dbl.Session
-	sharedSecret     = dbl.Key([]byte("9d0a39125ffd0ff12c7307e727b5191d1d9b65bd312b73e07915ba92b924d82b357559d2e175285c3bfac101faa8523342946b720434abedc0aa0d1b41e56809b7843e2f1c98391fad3a2d8a00f0b0a3799468fedda1e5fc53dcb2a6a40b0d37"))
+	sharedSecret     = dbl.Key([]byte("697c0afabe85f6c67a3310e9304f2cd07d58374692faf14b9476a854ba08f15e"))
 	securedSocket    = &websocket.Conn{}
 	socket           = &websocket.Conn{}
 	broadcastIn      = make(chan SecuredMessage)
@@ -40,6 +40,10 @@ var (
 var (
 	keyBundle X3DHBundle
 	appBundle AppBundle
+	// kp        = KeyPair{
+	// 	Private: dbl.Key([]byte("66f8df8f45f470c3a05826408de763f781c6aa5b61d0e5e040141acdd0e6e1e0")),
+	// 	Public:  dbl.Key([]byte("b05ea9404fea0c1c16640d96eec59c5412b8e07d4feac9d5a25dc458d0dae238")),
+	// }
 )
 
 func main() {
@@ -47,36 +51,37 @@ func main() {
 	keyBundle, appBundle = GenerateKeys()
 
 	// Uncomment these two input prompts for production. They will not work while in debug mode.
-	iOne := prompt.Input("Join a chat with Alice? Y/N ", func(d prompt.Document) []prompt.Suggest {
-		s := []prompt.Suggest{
-			{Text: "Yes", Description: "Let's begin the chat!"},
-			{Text: "No", Description: "No thanks."},
-		}
-		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
-	})
-	if iOne == "No" {
-		os.Exit(0)
-	}
+	// iOne := prompt.Input("Join a chat with Alice? Y/N ", func(d prompt.Document) []prompt.Suggest {
+	// 	s := []prompt.Suggest{
+	// 		{Text: "Yes", Description: "Let's begin the chat!"},
+	// 		{Text: "No", Description: "No thanks."},
+	// 	}
+	// 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+	// })
+	// if iOne == "No" {
+	// 	os.Exit(0)
+	// }
 
-	iTwo := prompt.Input("Will it be encrypted? Y/N ", func(d prompt.Document) []prompt.Suggest {
-		s := []prompt.Suggest{
-			{Text: "Yes", Description: "Use X3DH and Double Ratchet Protocol to protect my conversation!"},
-			{Text: "No", Description: "I want my messages to be vulnerable."},
-		}
-		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
-	})
-	if iTwo == "No" {
-		isEncrypted = false
-		fmt.Println("You are now in an unencrypted chat with Alice!")
-		fmt.Print("\n\n")
-	} else {
-		isEncrypted = true
-		fmt.Println("----------------------------------------------------")
-		fmt.Println("--- You are now in an encrypted chat with Alice! ---")
-		fmt.Print("----------------------------------------------------\n\n")
-	}
+	// iTwo := prompt.Input("Will it be encrypted? Y/N ", func(d prompt.Document) []prompt.Suggest {
+	// 	s := []prompt.Suggest{
+	// 		{Text: "Yes", Description: "Use X3DH and Double Ratchet Protocol to protect my conversation!"},
+	// 		{Text: "No", Description: "I want my messages to be vulnerable."},
+	// 	}
+	// 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+	// })
+	// if iTwo == "No" {
+	// 	isEncrypted = false
+	// 	fmt.Println("You are now in an unencrypted chat with Alice!")
+	// 	fmt.Print("\n\n")
+	// } else {
+	// 	isEncrypted = true
+	// 	fmt.Println("----------------------------------------------------")
+	// 	fmt.Println("--- You are now in an encrypted chat with Alice! ---")
+	// 	fmt.Print("----------------------------------------------------\n\n")
+	// }
 
 	bob, err = dbl.New([]byte("Bob-session"), sharedSecret, appBundle.EphemeralKeyPair, nil)
+	// bob, err = dbl.New([]byte("Bob-session"), sharedSecret, appBundle.EphemeralKeyPair, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,7 +90,7 @@ func main() {
 	http.HandleFunc("/keys", func(w http.ResponseWriter, req *http.Request) {
 		// Once X3DH is finished, this should be swapped out for the key bundle
 		pub := struct {
-			pubKey string
+			pubKey string `json:"key"`
 		}{
 			pubKey: appBundle.EphemeralKeyPair.PublicKey().String(),
 		}
@@ -107,6 +112,12 @@ func main() {
 			log.Printf("error: %v", err)
 		}
 		defer securedSocket.Close()
+
+		err = securedSocket.WriteJSON(KeyPair{Public: appBundle.EphemeralKeyPair.PublicKey()})
+		if err != nil {
+			log.Printf("error: %v", err)
+			securedSocket.Close()
+		}
 
 		for {
 

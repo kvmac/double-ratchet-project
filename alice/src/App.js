@@ -2,7 +2,7 @@ import React, { useRef, useCallback, useEffect, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import useDoubleRatchet from './hooks/use-double-ratchet';
 import useX3dh from './hooks/use-x3dh';
-import { getFormattedTime, hexStringToBytes } from './utils';
+import { getFormattedTime, hexStringToBytes, base64StringToBytes } from './utils';
 // import { keyPair, ratchetEncrypt, ratchetDecrypt, setKeyBundle } from 'crypto';
 import ChatBox from './components/chat-box';
 import { EnterChatModal } from './components/enter-chat-modal';
@@ -33,6 +33,7 @@ export const App = () => {
   const { isShowing, toggle } = useModal(true);
   const [ isEncrypted, setIsEncrypted ] = useState(false);
   const [ messageHistory, setMessageHistory ] = useState([]);
+  const [ theirPub, setTheirPub ] = useState('');
 
   // const [ MasterSecret, MyIdentityKeyPair, MyDHKeyPair, AD ] = useX3dh({ uri: "http://localhost:8080/keys" });
 
@@ -43,17 +44,18 @@ export const App = () => {
     shouldReconnect: (closeEvent) => true
     });
 
-  const [ RatchetEncrypt, RatchetDecrypt ] = useDoubleRatchet(
-    hexStringToBytes("9d0a39125ffd0ff12c7307e727b5191d1d9b65bd312b73e07915ba92b924d82b357559d2e175285c3bfac101faa8523342946b720434abedc0aa0d1b41e56809b7843e2f1c98391fad3a2d8a00f0b0a3799468fedda1e5fc53dcb2a6a40b0d37"),
-     { maxSkip: 10 });
 
   useEffect(() => {
+    if(!lastJsonMessage) {
+      return;
+    }
+
     (async () => {
-      if(!lastJsonMessage) {
+      if(lastJsonMessage.public) {
+        setTheirPub(base64StringToBytes(lastJsonMessage.public));
         return;
       }
 
-      
       const msg = lastJsonMessage;
       const plaintext = await RatchetDecrypt(msg.data.message, null);
 
@@ -68,13 +70,10 @@ export const App = () => {
 
   }, [lastJsonMessage]);
 
-  // messageHistory.current = useMemo(() =>
-  //   messageHistory.current.concat(ratchetDecrypt(lastJsonMessage)),[lastJsonMessage]);
-  // messageHistory.current = useMemo(() => messageHistory.concat(ratchetDecrypt(lastJsonMessage)),[lastJsonMessage]);
-
-  if (lastJsonMessage !== null && lastJsonMessage.header.pn === 0) {
-    // setKeyBundle(lastJsonMessage);
-  }
+  const [ RatchetEncrypt, RatchetDecrypt ] = useDoubleRatchet(
+    hexStringToBytes("697c0afabe85f6c67a3310e9304f2cd07d58374692faf14b9476a854ba08f15e"),
+    theirPub,
+    { maxSkip: 10 });
 
   const handleStartChat = () => {
     toggle();

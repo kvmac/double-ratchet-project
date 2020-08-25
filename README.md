@@ -1,6 +1,7 @@
 # double-ratchet-project
-## Client/Server implementation of the Double ratchet signal protocol using React and Golang
+[Signal's Double-Ratchet Protocol](https://signal.org/docs/specifications/doubleratchet/)
 
+## Client/Server implementation of the Double ratchet signal protocol using React and Golang
 
 ### React client
 ![](chat_client.gif)

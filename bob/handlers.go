@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/c-bata/go-prompt"
+	// "github.com/c-bata/go-prompt"
 	"log"
 	"time"
 )
@@ -47,34 +47,34 @@ func EncryptionHandler() error {
 }
 
 // Uncomment for production to allow server side, user message inputs
-func InputHandler() {
-	for {
-		input := prompt.Input(">>> ", func(d prompt.Document) []prompt.Suggest {
-			s := []prompt.Suggest{
-				{Text: "Quit", Description: "End chat"},
-			}
-			return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
-		})
+// func InputHandler() {
+// 	for {
+// 		input := prompt.Input(">>> ", func(d prompt.Document) []prompt.Suggest {
+// 			s := []prompt.Suggest{
+// 				{Text: "Quit", Description: "End chat"},
+// 			}
+// 			return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+// 		})
 
-		msg := Message{
-			Timestamp: time.Now().UTC(),
-			Author:    "Bob",
-			Plaintext: input,
-		}
+// 		msg := Message{
+// 			Timestamp: time.Now().UTC(),
+// 			Author:    "Bob",
+// 			Plaintext: input,
+// 		}
 
-		if isEncrypted {
-			broadcastOut <- msg // chan Message <- msg
-		} else {
-			err = socket.WriteJSON(msg)
-			if err != nil {
-				fmt.Println("Error!:  ", err)
-				securedSocket.Close()
-			}
-		}
+// 		if isEncrypted {
+// 			broadcastOut <- msg // chan Message <- msg
+// 		} else {
+// 			err = socket.WriteJSON(msg)
+// 			if err != nil {
+// 				fmt.Println("Error!:  ", err)
+// 				socket.Close()
+// 			}
+// 		}
 
-		broadcastToQueue <- msg // chan Message <- msg
-	}
-}
+// 		broadcastToQueue <- msg // chan Message <- msg
+// 	}
+// }
 
 func MessageQueueHandler() {
 	for {

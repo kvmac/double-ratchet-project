@@ -14,7 +14,7 @@ const useX3dh = ({ uri, initialMasterSecret }) => {
   const [ myDHPubKey, setMyDHPubKey ] = useStore("MY_DH_PUB_KEY", "");
   const [ masterSecret, setMasterSecret ] = useStore("MASTER_SECRET", "");
 
-  // their keys
+  // // their keys
   const [ theirIdentityKey, setTheirIdentityKey ] = useStore("THEIR_IDENTITY_KEY", "");
   const [ theirSignedPreKey, setTheirSignedPreKey ] = useStore("THEIR_SIGNED_PRE_KEY", "");
   const [ theirPreKeySig, setTheirPreKeySig ] = useStore("THEIR_PRE_KEY_SIG", "");
@@ -49,7 +49,6 @@ const useX3dh = ({ uri, initialMasterSecret }) => {
 
     const { identityKey, signedPreKey } = res.data;
 
-    // return { identityKey, pre};
     return [ identityKey, signedPreKey.pubKey, signedPreKey.sig ];
     } catch(err) {
       console.log("error: ", err);

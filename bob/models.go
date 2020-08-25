@@ -62,6 +62,6 @@ type Message struct {
 }
 
 type KeyPair struct {
-	Public  dbl.Key
-	Private dbl.Key
+	Public  dbl.Key `json:"public"`
+	Private dbl.Key `json:"private"`
 }

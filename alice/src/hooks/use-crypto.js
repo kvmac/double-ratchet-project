@@ -24,15 +24,16 @@ const useCrypto = () => {
   const DeriveSecret = async (myDHPrivKey, theirDHPubKey) => {
     const priv = ec25519.keyFromPrivate(myDHPrivKey);
     const kp = ec25519.keyPair(priv, priv.getPublic());
-    const theirKey = ec25519.keyFromPublic(theirDHPubKey, 'hex');
+    const theirKey = ec25519.keyFromPublic(theirDHPubKey);
 
     const bn = kp.derive(theirKey.getPublic());
+    const r = bn.toArrayLike(Uint8Array, bn.toArray('be', 32));
 
-    return new Uint8Array(bn.toArrayLike(new Uint8Array, 'be', 32));
+    return r;
   };
 
-  const KdfRK = async (dhOut, rk) => {
-    const keyHash = await Hkdf(dhOut, 96, { salt: rk, info: "rsZUpEuXUqqwXBvSy3EcievAh4cMj6QL" });
+  const KdfRK = async (rk, dhOut) => {
+    const keyHash = await hkdf(dhOut, 96, { salt: rk, info: "rsZUpEuXUqqwXBvSy3EcievAh4cMj6QL" });
 
     const rootKey = new Uint8Array(keyHash.slice(0, 32));
     const chainKey = new Uint8Array(keyHash.slice(32, 64));
@@ -42,8 +43,8 @@ const useCrypto = () => {
   };
 
   const KdfCK = async (chKey) => {
-    const chainKey = await HmacSHA256(Buffer.from(new Uint8Array([15])).toString('hex'), chKey).toString(enc.Hex);
-    const msgKey = await HmacSHA256(Buffer.from(new Uint8Array([16])).toString('hex'), chKey).toString(enc.Hex);
+    const chainKey = await HmacSHA256(bytesToHex(new Uint8Array([15])), chKey).toString(enc.Hex);
+    const msgKey = await HmacSHA256(bytesToHex(new Uint8Array([16])), chKey).toString(enc.Hex);
 
     return [ msgKey, chainKey ];
   };
@@ -56,7 +57,10 @@ const useCrypto = () => {
       iv,
       padding: pad.NoPadding,
     });
-    const ciphertext = hexStringToBytes(encrypted.ciphertext.toString(enc.Hex));
+
+    const hexCiphertext = encrypted.ciphertext.toString(enc.Hex);
+
+    const ciphertext = hexStringToBytes(hexCiphertext);
 
     const sig = computeSignature(authKey, encrypted.ciphertext.toString(enc.Hex), AD);
 
@@ -91,7 +95,7 @@ const useCrypto = () => {
   };
 
   const deriveEncKeys = (messageKey) => {
-    const keyHash = Hkdf(messageKey, 80, {salt: new Uint8Array(32), info: hexStringToBytes("pcwSByyx2CRdryCffXJwy7xgVZWtW5Sh")});
+    const keyHash = hkdf(messageKey, 80, {salt: new Uint8Array(32), info: hexStringToBytes("pcwSByyx2CRdryCffXJwy7xgVZWtW5Sh")});
 
     const encKeyBuffer = keyHash.slice(0, 32);
     const authKeyBuffer = keyHash.slice(32, 64);
@@ -100,12 +104,12 @@ const useCrypto = () => {
     return [ encKeyBuffer, authKeyBuffer, ivBuffer ];
   };
 
-  const computeSignature = (authKey, ciphertext, AD) => {
-    const authKeyBytes = Buffer.isBuffer(authKey) ? authKey : Buffer.from(authKey);
-    const ciphertextBytes = Buffer.isBuffer(ciphertext) ? ciphertext : Buffer.from(ciphertext);
-    const adBytes = Buffer.isBuffer(AD) ? AD : Buffer.from(AD);
+  const computeSignature = (authKeyBytes, ciphertextBytes, AD) => {
+    // const authKeyBytes = authKey;
+    // const ciphertextBytes = Buffer.isBuffer(ciphertext) ? ciphertext : Buffer.from(ciphertext);
+    const adBytes = AD;
 
-    const hash = algo.HMAC.create(algo.SHA256, authKeyBytes.toString('hex'))
+    const hash = algo.HMAC.create(algo.SHA256, authKeyBytes)
       .update(adBytes.toString('hex'))
       .update(ciphertextBytes.toString('hex'))
       .finalize();
@@ -131,7 +135,7 @@ const useCrypto = () => {
 
   // ikm = Initial Key Material
   // length = Hash Output Length
-  const Hkdf = (ikm, length, { salt, info }) => {
+  const hkdf = (ikm, length, { salt, info }) => {
     const sha256Length = 32;
 
     const PRK = _hkdf_extract(ikm, sha256Length, salt);
@@ -141,17 +145,16 @@ const useCrypto = () => {
 
   // First Part of HKDF extracts
   const _hkdf_extract = (ikm, hashLen, salt) => {
-    const ikmBytes = Buffer.isBuffer(ikm) ? ikm : Buffer.from(ikm);
-    const saltBytes = (salt && salt.length) ? Buffer.from(salt) : Buffer.alloc(hashLen, 0);
+    const saltBytes = salt ? salt : new Uint8Array(hashLen).fill(0);
 
     const hmac = algo.HMAC.create(algo.SHA256, saltBytes.toString('hex'));
-    hmac.update(ikmBytes.toString('hex'));
+    hmac.update(ikm.toString('hex'));
     return hmac.finalize();
   };
 
   // Second Part of HKDF expands
   const _hkdf_expand = (hashLen, prk, length, info) => {
-    const infoBytes = Buffer.from(info || "");
+    const infoBytes = info || "";
     const infoLen = infoBytes.length;
 
     const steps = Math.ceil(length / hashLen);
@@ -163,7 +166,8 @@ const useCrypto = () => {
     const t = Buffer.alloc(hashLen * steps + infoLen + 1);
 
     for (let c = 1, start = 0, end = 0; c <= steps; ++c) {
-      infoBytes.copy(t, end);
+      const ib = Buffer.from(infoBytes);
+      ib.copy(t, end);
       t[end + infoLen] = c;
 
       const hash = algo.HMAC.create(algo.SHA256, prk)

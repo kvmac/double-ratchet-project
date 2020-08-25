@@ -5,7 +5,7 @@ import { useStore, storeValue } from './use-store';
 import useChain from './use-chain';
 import { hexStringToBytes, bytesToHex } from '../utils';
 
-const useDoubleRatchet = (masterSecret, { maxSkip }) => {
+const useDoubleRatchet = (masterSecret, pubKey, { maxSkip }) => {
   // immediately store master secret after X3DH
   storeValue("MASTER_SECRET", masterSecret);
   const MAX_SKIP = maxSkip || 20;
@@ -18,15 +18,19 @@ const useDoubleRatchet = (masterSecret, { maxSkip }) => {
   const { rootChain, sendingChain, receivingChain, updateChain, updateSendingChain, updateReceivingChain } = useChain(masterSecret);
 
   // Initialize Crypto hooks
-  const { GenerateKeyPair, DeriveSecret, Hkdf, KdfRK, KdfCK, Encrypt, Decrypt, EncodeHeader } = useCrypto();
+  const { GenerateKeyPair, DeriveSecret, KdfRK, KdfCK, Encrypt, Decrypt, EncodeHeader } = useCrypto();
 
   useEffect(() => {
     (async () => {
       // This call will be removed once X3DH is implemented
-      const res = await axios("localhost:8080/keys", {method: "get"});
-      const { pubKey } = res.data;
+      // const res = await axios("localhost:8080/keys", {method: "get"});
+      // const { pubKey } = res.data;
 
-      const [ rootKey, sendingKey ] = await Hkdf(masterSecret);
+      if(!pubKey) {
+        return;
+      }
+      const [ rootKey, sendingKey ] = await KdfRK(masterSecret, DeriveSecret(myDHPrivKey, pubKey));
+      // const [ rootKey, sendingKey ] = await KdfRK(masterSecret, DeriveSecret(myDHPrivKey, theirDHPubKey));
 
       await updateChain({
         rootKey,

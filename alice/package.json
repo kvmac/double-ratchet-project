@@ -6,7 +6,7 @@
     "axios": "^0.19.2",
     "bn.js": "^5.1.2",
     "crypto-js": "^4.0.0",
-    "elliptic": "^6.5.3",
+    "elliptic": "^6.5.4",
     "eslint-plugin-react-hooks": "^4.0.4",
     "postcss-loader": "^3.0.0",
     "react": "^16.13.1",
